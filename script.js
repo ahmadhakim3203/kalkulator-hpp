@@ -589,9 +589,492 @@ function generateReport() {
     });
 }
 
+// ============================================
+// FITUR EXPORT PDF LENGKAP
+// ============================================
+
+// Export to PDF Function
 function exportReport() {
-    alert('Fitur export PDF akan segera hadir!');
+    const period = document.getElementById('reportPeriod').value;
+    const periodText = getPeriodText(period);
+    
+    // Create new PDF document
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Add header
+    addPDFHeader(doc, periodText);
+    
+    // Get report data
+    const reportData = getReportData(period);
+    
+    // Add summary section
+    addPDFSummary(doc, reportData.summary);
+    
+    // Add table
+    addPDFTable(doc, reportData.products);
+    
+    // Save PDF
+    doc.save(`Laporan_HPP_${periodText}_${formatDateForFile(new Date())}.pdf`);
 }
+
+function getPeriodText(period) {
+    const periods = {
+        'all': 'Semua Periode',
+        'today': 'Hari Ini',
+        'week': 'Minggu Ini',
+        'month': 'Bulan Ini'
+    };
+    return periods[period] || period;
+}
+
+function addPDFHeader(doc, periodText) {
+    // Company/App header
+    doc.setFillColor(102, 126, 234); // Warna primary
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('LAPORAN HPP PRODUK', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text('HPP Calculator - Tanpa Packaging', 105, 30, { align: 'center' });
+    
+    // Period and date info
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.text(`Periode: ${periodText}`, 14, 50);
+    doc.text(`Tanggal Cetak: ${formatDate(new Date())}`, 14, 57);
+    doc.text(`Dicetak oleh: ${currentUser.name}`, 14, 64);
+    
+    // Line separator
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, 70, 196, 70);
+}
+
+function getReportData(period) {
+    let filteredProducts = [...products];
+    const now = new Date();
+    
+    // Filter by period
+    if (period === 'today') {
+        filteredProducts = products.filter(p => {
+            const date = new Date(p.createdAt);
+            return date.toDateString() === now.toDateString();
+        });
+    } else if (period === 'week') {
+        const weekAgo = new Date(now.setDate(now.getDate() - 7));
+        filteredProducts = products.filter(p => new Date(p.createdAt) >= weekAgo);
+    } else if (period === 'month') {
+        const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
+        filteredProducts = products.filter(p => new Date(p.createdAt) >= monthAgo);
+    }
+    
+    // Calculate summary
+    let totalProduction = filteredProducts.length;
+    let totalCost = 0;
+    let totalIngredients = 0;
+    
+    filteredProducts.forEach(p => {
+        totalCost += p.totalCost || 0;
+        totalIngredients += p.ingredients ? p.ingredients.length : 0;
+    });
+    
+    const averageCost = totalProduction > 0 ? totalCost / totalProduction : 0;
+    
+    return {
+        summary: {
+            totalProduction,
+            totalCost,
+            averageCost,
+            totalIngredients
+        },
+        products: filteredProducts
+    };
+}
+
+function addPDFSummary(doc, summary) {
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Ringkasan Laporan', 14, 85);
+    
+    // Summary boxes
+    const startY = 95;
+    const boxWidth = 45;
+    const boxHeight = 25;
+    const spacing = 5;
+    
+    const summaries = [
+        { label: 'Total Produksi', value: summary.totalProduction.toString(), icon: '📦' },
+        { label: 'Total Biaya', value: formatCurrency(summary.totalCost), icon: '💰' },
+        { label: 'Rata-rata HPP', value: formatCurrency(summary.averageCost), icon: '📊' },
+        { label: 'Total Bahan', value: summary.totalIngredients.toString(), icon: '🥫' }
+    ];
+    
+    summaries.forEach((item, index) => {
+        const x = 14 + (index * (boxWidth + spacing));
+        
+        // Box background
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(x, startY, boxWidth, boxHeight, 3, 3, 'F');
+        
+        // Border
+        doc.setDrawColor(102, 126, 234);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(x, startY, boxWidth, boxHeight, 3, 3, 'S');
+        
+        // Content
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text(item.label, x + 3, startY + 8);
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(102, 126, 234);
+        doc.text(item.value, x + 3, startY + 18);
+    });
+}
+
+function addPDFTable(doc, products) {
+    const startY = 135;
+    
+    // Table title
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Detail Produk', 14, startY - 5);
+    
+    // Table headers
+    const headers = [['No', 'Nama Produk', 'Tgl Dibuat', 'Jml Bahan', 'Total Biaya', 'HPP']];
+    
+    // Table data
+    const data = products.map((product, index) => [
+        (index + 1).toString(),
+        product.name,
+        formatDate(product.createdAt),
+        product.ingredients ? product.ingredients.length.toString() : '0',
+        formatCurrency(product.totalCost || 0),
+        formatCurrency(product.totalCost || 0)
+    ]);
+    
+    // Generate table
+    doc.autoTable({
+        head: headers,
+        body: data,
+        startY: startY,
+        theme: 'striped',
+        headStyles: {
+            fillColor: [102, 126, 234],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            halign: 'center'
+        },
+        columnStyles: {
+            0: { cellWidth: 15, halign: 'center' },
+            1: { cellWidth: 50 },
+            2: { cellWidth: 35 },
+            3: { cellWidth: 25, halign: 'center' },
+            4: { cellWidth: 35, halign: 'right' },
+            5: { cellWidth: 35, halign: 'right' }
+        },
+        alternateRowStyles: {
+            fillColor: [245, 245, 245]
+        },
+        margin: { left: 14, right: 14 },
+        didDrawPage: function(data) {
+            // Add footer on each page
+            addPDFFooter(doc, data.pageNumber);
+        }
+    });
+    
+    // Add total row at the bottom
+    const finalY = doc.lastAutoTable.finalY + 10;
+    
+    // Calculate totals
+    const totalProducts = products.length;
+    const totalCost = products.reduce((sum, p) => sum + (p.totalCost || 0), 0);
+    
+    doc.setFillColor(240, 240, 240);
+    doc.roundedRect(120, finalY, 80, 15, 2, 2, 'F');
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Total Produk:', 125, finalY + 5);
+    doc.text(totalProducts.toString(), 145, finalY + 5);
+    
+    doc.text('Total Biaya:', 125, finalY + 11);
+    doc.text(formatCurrency(totalCost), 145, finalY + 11);
+}
+
+function addPDFFooter(doc, pageNumber) {
+    const pageCount = doc.internal.getNumberOfPages();
+    
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    
+    // Line separator
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, 280, 196, 280);
+    
+    // Footer text
+    doc.text('© 2024 HPP Calculator - Aplikasi Hitung HPP Tanpa Packaging', 105, 287, { align: 'center' });
+    doc.text(`Halaman ${pageNumber} dari ${pageCount}`, 105, 293, { align: 'center' });
+    
+    // Generated timestamp
+    doc.text(`Dicetak: ${formatDateTime(new Date())}`, 196, 293, { align: 'right' });
+}
+
+// Fungsi tambahan untuk format tanggal di file name
+function formatDateForFile(date) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+}
+
+function formatDateTime(date) {
+    const d = new Date(date);
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+    return `${formatDate(date)} ${hours}:${minutes}:${seconds}`;
+}
+
+// Export produk individual ke PDF
+function exportProductToPDF(productId) {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFillColor(102, 126, 234);
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DETAIL PRODUK', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.text(product.name, 105, 30, { align: 'center' });
+    
+    // Product info
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Informasi Produk', 14, 55);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Nama Produk: ${product.name}`, 14, 65);
+    doc.text(`Deskripsi: ${product.description || '-'}`, 14, 72);
+    doc.text(`Tanggal Dibuat: ${formatDate(product.createdAt)}`, 14, 79);
+    doc.text(`Terakhir Update: ${formatDate(product.updatedAt)}`, 14, 86);
+    
+    // Ingredients table
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('Komposisi Bahan Baku', 14, 103);
+    
+    const headers = [['No', 'Bahan Baku', 'Jumlah', 'Satuan', 'Harga', 'Subtotal']];
+    const data = product.ingredients.map((ing, index) => [
+        (index + 1).toString(),
+        ing.ingredientName,
+        ing.quantity.toString(),
+        ing.unit,
+        formatCurrency(ing.price),
+        formatCurrency(ing.subtotal)
+    ]);
+    
+    doc.autoTable({
+        head: headers,
+        body: data,
+        startY: 108,
+        theme: 'striped',
+        headStyles: {
+            fillColor: [102, 126, 234],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold'
+        },
+        columnStyles: {
+            0: { cellWidth: 15, halign: 'center' },
+            4: { halign: 'right' },
+            5: { halign: 'right' }
+        }
+    });
+    
+    // Total calculation
+    const finalY = doc.lastAutoTable.finalY + 15;
+    
+    doc.setFillColor(240, 240, 240);
+    doc.roundedRect(120, finalY, 70, 25, 3, 3, 'F');
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('TOTAL HPP', 125, finalY + 8);
+    
+    doc.setFontSize(14);
+    doc.setTextColor(102, 126, 234);
+    doc.text(formatCurrency(product.totalCost || 0), 125, finalY + 20);
+    
+    // Footer
+    doc.setTextColor(150, 150, 150);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('© 2024 HPP Calculator', 105, 280, { align: 'center' });
+    
+    doc.save(`Produk_${product.name}_${formatDateForFile(new Date())}.pdf`);
+}
+
+// Export semua bahan baku ke PDF
+function exportIngredientsToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFillColor(102, 126, 234);
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DAFTAR BAHAN BAKU', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.text('HPP Calculator - Tanpa Packaging', 105, 30, { align: 'center' });
+    
+    // Summary
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.text(`Total Bahan: ${ingredients.length}`, 14, 50);
+    doc.text(`Tanggal Cetak: ${formatDate(new Date())}`, 14, 57);
+    
+    const totalValue = ingredients.reduce((sum, ing) => sum + (ing.price * ing.stock), 0);
+    doc.text(`Total Nilai Stok: ${formatCurrency(totalValue)}`, 14, 64);
+    
+    // Table
+    const headers = [['No', 'Nama Bahan', 'Satuan', 'Harga', 'Stok', 'Nilai Stok']];
+    const data = ingredients.map((ing, index) => [
+        (index + 1).toString(),
+        ing.name,
+        ing.unit,
+        formatCurrency(ing.price),
+        `${ing.stock} ${ing.unit}`,
+        formatCurrency(ing.price * ing.stock)
+    ]);
+    
+    doc.autoTable({
+        head: headers,
+        body: data,
+        startY: 75,
+        theme: 'striped',
+        headStyles: {
+            fillColor: [102, 126, 234],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold'
+        },
+        columnStyles: {
+            0: { cellWidth: 15, halign: 'center' },
+            3: { halign: 'right' },
+            5: { halign: 'right' }
+        }
+    });
+    
+    // Footer
+    doc.setTextColor(150, 150, 150);
+    doc.setFontSize(8);
+    doc.text('© 2024 HPP Calculator', 105, 280, { align: 'center' });
+    
+    doc.save(`Bahan_Baku_${formatDateForFile(new Date())}.pdf`);
+}
+
+// Export semua produk ke PDF
+function exportAllProductsPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFillColor(102, 126, 234);
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DAFTAR SEMUA PRODUK', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.text('HPP Calculator - Tanpa Packaging', 105, 30, { align: 'center' });
+    
+    // Summary
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.text(`Total Produk: ${products.length}`, 14, 50);
+    doc.text(`Tanggal Cetak: ${formatDate(new Date())}`, 14, 57);
+    
+    // Calculate totals
+    const totalBiaya = products.reduce((sum, p) => sum + (p.totalCost || 0), 0);
+    const rataHPP = products.length > 0 ? totalBiaya / products.length : 0;
+    
+    doc.text(`Total Biaya: ${formatCurrency(totalBiaya)}`, 14, 64);
+    doc.text(`Rata-rata HPP: ${formatCurrency(rataHPP)}`, 14, 71);
+    
+    // Table
+    const headers = [['No', 'Nama Produk', 'Jml Bahan', 'Total Biaya', 'HPP', 'Tgl Dibuat']];
+    const data = products.map((product, index) => [
+        (index + 1).toString(),
+        product.name,
+        product.ingredients ? product.ingredients.length.toString() : '0',
+        formatCurrency(product.totalCost || 0),
+        formatCurrency(product.totalCost || 0),
+        formatDate(product.createdAt)
+    ]);
+    
+    doc.autoTable({
+        head: headers,
+        body: data,
+        startY: 82,
+        theme: 'striped',
+        headStyles: {
+            fillColor: [102, 126, 234],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold'
+        },
+        columnStyles: {
+            0: { cellWidth: 15, halign: 'center' },
+            3: { halign: 'right' },
+            4: { halign: 'right' }
+        }
+    });
+    
+    // Footer
+    doc.setTextColor(150, 150, 150);
+    doc.setFontSize(8);
+    doc.text('© 2024 HPP Calculator', 105, 280, { align: 'center' });
+    
+    doc.save(`Semua_Produk_${formatDateForFile(new Date())}.pdf`);
+}
+
+// Toggle export menu
+function toggleExportMenu() {
+    const menu = document.getElementById('exportMenu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+// Close export menu when clicking outside
+document.addEventListener('click', function(event) {
+    const exportDropdown = document.querySelector('.export-dropdown');
+    const exportMenu = document.getElementById('exportMenu');
+    
+    if (exportDropdown && !exportDropdown.contains(event.target)) {
+        exportMenu.style.display = 'none';
+    }
+});
 
 // Logout
 document.getElementById('logoutBtn').addEventListener('click', function() {
