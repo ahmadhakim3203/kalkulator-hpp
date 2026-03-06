@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Library untuk Export PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
@@ -127,9 +128,14 @@
             <div id="products" class="page">
                 <div class="page-header">
                     <h2>Manajemen Produk</h2>
-                    <button class="btn btn-primary" onclick="openProductModal()">
-                        <i class="fas fa-plus"></i> Tambah Produk
-                    </button>
+                    <div class="header-buttons">
+                        <button class="btn btn-secondary" onclick="exportAllProductsPDF()">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </button>
+                        <button class="btn btn-primary" onclick="openProductModal()">
+                            <i class="fas fa-plus"></i> Tambah Produk
+                        </button>
+                    </div>
                 </div>
 
                 <div class="search-bar">
@@ -161,9 +167,14 @@
             <div id="ingredients" class="page">
                 <div class="page-header">
                     <h2>Manajemen Bahan Baku</h2>
-                    <button class="btn btn-primary" onclick="openIngredientModal()">
-                        <i class="fas fa-plus"></i> Tambah Bahan
-                    </button>
+                    <div class="header-buttons">
+                        <button class="btn btn-secondary" onclick="exportIngredientsToPDF()">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </button>
+                        <button class="btn btn-primary" onclick="openIngredientModal()">
+                            <i class="fas fa-plus"></i> Tambah Bahan
+                        </button>
+                    </div>
                 </div>
 
                 <div class="search-bar">
@@ -253,9 +264,23 @@
                             <option value="week">Minggu Ini</option>
                             <option value="month">Bulan Ini</option>
                         </select>
-                        <button class="btn btn-secondary" onclick="exportReport()">
-                            <i class="fas fa-download"></i> Export PDF
-                        </button>
+                        
+                        <div class="export-dropdown">
+                            <button class="btn btn-primary" onclick="toggleExportMenu()">
+                                <i class="fas fa-download"></i> Export <i class="fas fa-caret-down"></i>
+                            </button>
+                            <div id="exportMenu" class="dropdown-content">
+                                <a href="#" onclick="exportReport()">
+                                    <i class="fas fa-file-pdf"></i> Export Laporan PDF
+                                </a>
+                                <a href="#" onclick="exportAllProductsPDF()">
+                                    <i class="fas fa-boxes"></i> Export Semua Produk
+                                </a>
+                                <a href="#" onclick="exportIngredientsToPDF()">
+                                    <i class="fas fa-apple-alt"></i> Export Bahan Baku
+                                </a>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="report-summary">
