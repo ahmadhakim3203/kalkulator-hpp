@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HPP Calculator - Tanpa Packaging</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <i class="fas fa-calculator"></i>
+                <h2>HPP Calculator</h2>
+            </div>
+            
+            <div class="user-info" id="userInfo">
+                <i class="fas fa-user-circle"></i>
+                <span id="usernameDisplay"></span>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="products">
+                    <i class="fas fa-box"></i>
+                    <span>Produk</span>
+                </a>
+                <a href="#" class="nav-item" data-page="ingredients">
+                    <i class="fas fa-apple-alt"></i>
+                    <span>Bahan Baku</span>
+                </a>
+                <a href="#" class="nav-item" data-page="calculator">
+                    <i class="fas fa-calculator"></i>
+                    <span>Kalkulator HPP</span>
+                </a>
+                <a href="#" class="nav-item" data-page="reports">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Laporan</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-title">
+                    <h1 id="pageTitle">Dashboard</h1>
+                    <p id="pageDescription">Selamat datang di aplikasi HPP Calculator</p>
+                </div>
+                <div class="header-actions">
+                    <div class="auto-save-indicator" id="autoSaveIndicator">
+                        <i class="fas fa-save"></i>
+                        <span>Tersimpan</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Page -->
+            <div id="dashboard" class="page active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Produk</h3>
+                            <p id="totalProducts">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-apple-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Bahan Baku</h3>
+                            <p id="totalIngredients">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Rata-rata HPP</h3>
+                            <p id="avgHPP">Rp 0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-products">
+                    <h2>Produk Terbaru</h2>
+                    <div class="table-container">
+                        <table id="recentProductsTable">
+                            <thead>
+                                <tr>
+                                    <th>Nama Produk</th>
+                                    <th>Total Bahan</th>
+                                    <th>Total Biaya</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentProductsBody">
+                                <!-- Data akan diisi JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Page -->
+            <div id="products" class="page">
+                <div class="page-header">
+                    <h2>Manajemen Produk</h2>
+                    <button class="btn btn-primary" onclick="openProductModal()">
+                        <i class="fas fa-plus"></i> Tambah Produk
+                    </button>
+                </div>
+
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchProduct" placeholder="Cari produk..." onkeyup="filterProducts()">
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama Produk</th>
+                                <th>Deskripsi</th>
+                                <th>Total Bahan</th>
+                                <th>Total Biaya</th>
+                                <th>Dibuat</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            <!-- Data akan diisi JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Ingredients Page -->
+            <div id="ingredients" class="page">
+                <div class="page-header">
+                    <h2>Manajemen Bahan Baku</h2>
+                    <button class="btn btn-primary" onclick="openIngredientModal()">
+                        <i class="fas fa-plus"></i> Tambah Bahan
+                    </button>
+                </div>
+
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchIngredient" placeholder="Cari bahan baku..." onkeyup="filterIngredients()">
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama Bahan</th>
+                                <th>Satuan</th>
+                                <th>Harga per Satuan</th>
+                                <th>Stok</th>
+                                <th>Dibuat</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ingredientsTableBody">
+                            <!-- Data akan diisi JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Calculator Page -->
+            <div id="calculator" class="page">
+                <div class="calculator-container">
+                    <div class="calculator-form">
+                        <h2>Kalkulator HPP Produk</h2>
+                        
+                        <div class="form-group">
+                            <label for="calcProduct">Pilih Produk</label>
+                            <select id="calcProduct" onchange="loadProductForCalculation()">
+                                <option value="">-- Pilih Produk --</option>
+                            </select>
+                        </div>
+
+                        <div id="calculationDetails" style="display: none;">
+                            <div class="ingredients-list">
+                                <h3>Komposisi Bahan Baku</h3>
+                                <table class="ingredients-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Bahan Baku</th>
+                                            <th>Jumlah</th>
+                                            <th>Satuan</th>
+                                            <th>Harga</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="calculationIngredients">
+                                        <!-- Data akan diisi JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="hpp-result">
+                                <h3>Hasil Perhitungan HPP</h3>
+                                <div class="result-box">
+                                    <div class="result-item">
+                                        <span>Total Biaya Bahan Baku:</span>
+                                        <strong id="totalMaterialCost">Rp 0</strong>
+                                    </div>
+                                    <div class="result-item total">
+                                        <span>HPP per Produk:</span>
+                                        <strong id="hppPerProduct">Rp 0</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Page -->
+            <div id="reports" class="page">
+                <div class="reports-container">
+                    <h2>Laporan HPP</h2>
+                    
+                    <div class="report-filters">
+                        <select id="reportPeriod" onchange="generateReport()">
+                            <option value="all">Semua Periode</option>
+                            <option value="today">Hari Ini</option>
+                            <option value="week">Minggu Ini</option>
+                            <option value="month">Bulan Ini</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="exportReport()">
+                            <i class="fas fa-download"></i> Export PDF
+                        </button>
+                    </div>
+
+                    <div class="report-summary">
+                        <div class="summary-card">
+                            <h4>Total Produksi</h4>
+                            <p id="totalProduction">0</p>
+                        </div>
+                        <div class="summary-card">
+                            <h4>Total Biaya</h4>
+                            <p id="totalCost">Rp 0</p>
+                        </div>
+                        <div class="summary-card">
+                            <h4>Rata-rata HPP</h4>
+                            <p id="averageCost">Rp 0</p>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table id="reportTable">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Nama Produk</th>
+                                    <th>Jumlah Bahan</th>
+                                    <th>Total Biaya</th>
+                                    <th>HPP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportBody">
+                                <!-- Data akan diisi JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Tambah Produk Baru</h2>
+                <span class="close" onclick="closeProductModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+                    
+                    <div class="form-group">
+                        <label for="productName">Nama Produk</label>
+                        <input type="text" id="productName" required placeholder="Masukkan nama produk">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productDescription">Deskripsi Produk</label>
+                        <textarea id="productDescription" rows="3" placeholder="Masukkan deskripsi produk"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Komposisi Bahan Baku</label>
+                        <div id="ingredientsContainer">
+                            <!-- Dynamic ingredients will be added here -->
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-small" onclick="addIngredientRow()">
+                            <i class="fas fa-plus"></i> Tambah Bahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="saveProduct()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ingredient Modal -->
+    <div id="ingredientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="ingredientModalTitle">Tambah Bahan Baku</h2>
+                <span class="close" onclick="closeIngredientModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="ingredientForm">
+                    <input type="hidden" id="ingredientId">
+                    
+                    <div class="form-group">
+                        <label for="ingredientName">Nama Bahan</label>
+                        <input type="text" id="ingredientName" required placeholder="Masukkan nama bahan">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ingredientUnit">Satuan</label>
+                        <select id="ingredientUnit" required>
+                            <option value="">Pilih Satuan</option>
+                            <option value="kg">Kilogram (kg)</option>
+                            <option value="gram">Gram (g)</option>
+                            <option value="liter">Liter (L)</option>
+                            <option value="ml">Mililiter (ml)</option>
+                            <option value="pcs">Pieces (pcs)</option>
+                            <option value="buah">Buah</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ingredientPrice">Harga per Satuan</label>
+                        <input type="number" id="ingredientPrice" required min="0" placeholder="Masukkan harga">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ingredientStock">Stok Awal</label>
+                        <input type="number" id="ingredientStock" required min="0" placeholder="Masukkan stok">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeIngredientModal()">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="saveIngredient()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
