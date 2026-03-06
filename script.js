@@ -27,6 +27,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update dashboard stats
     updateDashboard();
+    
+    // Close export menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const exportDropdown = document.querySelector('.export-dropdown');
+        const exportMenu = document.getElementById('exportMenu');
+        
+        if (exportDropdown && !exportDropdown.contains(event.target)) {
+            exportMenu.style.display = 'none';
+        }
+    });
 });
 
 // Navigation
@@ -170,10 +180,13 @@ function loadRecentProducts() {
             <td>${formatCurrency(product.totalCost || 0)}</td>
             <td>
                 <div class="action-btns">
-                    <button class="action-btn edit-btn" onclick="editProduct('${product.id}')">
+                    <button class="action-btn view-btn" onclick="exportProductToPDF('${product.id}')" title="Export PDF">
+                        <i class="fas fa-file-pdf"></i>
+                    </button>
+                    <button class="action-btn edit-btn" onclick="editProduct('${product.id}')" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="action-btn delete-btn" onclick="deleteProduct('${product.id}')">
+                    <button class="action-btn delete-btn" onclick="deleteProduct('${product.id}')" title="Hapus">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -199,10 +212,13 @@ function loadProductsTable() {
             <td>${formatDate(product.createdAt)}</td>
             <td>
                 <div class="action-btns">
-                    <button class="action-btn edit-btn" onclick="editProduct('${product.id}')">
+                    <button class="action-btn view-btn" onclick="exportProductToPDF('${product.id}')" title="Export PDF">
+                        <i class="fas fa-file-pdf"></i>
+                    </button>
+                    <button class="action-btn edit-btn" onclick="editProduct('${product.id}')" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="action-btn delete-btn" onclick="deleteProduct('${product.id}')">
+                    <button class="action-btn delete-btn" onclick="deleteProduct('${product.id}')" title="Hapus">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -1065,16 +1081,6 @@ function toggleExportMenu() {
     const menu = document.getElementById('exportMenu');
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 }
-
-// Close export menu when clicking outside
-document.addEventListener('click', function(event) {
-    const exportDropdown = document.querySelector('.export-dropdown');
-    const exportMenu = document.getElementById('exportMenu');
-    
-    if (exportDropdown && !exportDropdown.contains(event.target)) {
-        exportMenu.style.display = 'none';
-    }
-});
 
 // Logout
 document.getElementById('logoutBtn').addEventListener('click', function() {
